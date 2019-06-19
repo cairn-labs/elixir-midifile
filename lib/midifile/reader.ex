@@ -149,15 +149,21 @@ defmodule Midifile.Reader do
 
   defp event_list(f, pos, bytes_to_read, events) do
     debug("event_list")
-    {:ok, bin} = :file.pread(f, pos, 4)
-    [delta_time, var_len_bytes_used] = Varlen.read(bin)
-    {:ok, three_bytes} = :file.pread(f, pos + var_len_bytes_used, 3)
 
-    [event, event_bytes_read] =
-      read_event(f, pos + var_len_bytes_used, delta_time, three_bytes, 0)
+    case :file.pread(f, pos, 4) do
+      {:ok, bin} ->
+        [delta_time, var_len_bytes_used] = Varlen.read(bin)
+        {:ok, three_bytes} = :file.pread(f, pos + var_len_bytes_used, 3)
 
-    bytes_read = var_len_bytes_used + event_bytes_read
-    event_list(f, pos + bytes_read, bytes_to_read - bytes_read, [event | events])
+        [event, event_bytes_read] =
+          read_event(f, pos + var_len_bytes_used, delta_time, three_bytes, 0)
+
+        bytes_read = var_len_bytes_used + event_bytes_read
+        event_list(f, pos + bytes_read, bytes_to_read - bytes_read, [event | events])
+
+      :eof ->
+        :lists.reverse(events)
+    end
   end
 
   defp read_event(
