@@ -452,8 +452,6 @@ defmodule Midifile.Reader do
 
       unknown ->
         debug("unknown meta")
-        # DEBUG
-        IO.puts("unknown == #{unknown}")
         [%Event{symbol: :unknown_meta, delta_time: delta_time, bytes: [type, data]}, total_length]
     end
   end
